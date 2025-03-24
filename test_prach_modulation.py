@@ -3,8 +3,13 @@ from get_random_access_configuration import RandomAccessConfig
 from get_ncs_root_cv import get_NCS, get_u, get_C_v
 from prach_modulation_demodulation import prach_modulation
 import numpy as np
-from pyphysim.reference_signals.zadoffchu import calcBaseZC
 from numpy.fft import fft
+import matplotlib.pyplot as plt
+from pyphysim.reference_signals.zadoffchu import calcBaseZC
+from pyphysim.channels.fading import TdlChannel, TdlChannelProfile
+from pyphysim.channels.fading_generators import JakesSampleGenerator
+from commpy.channels import awgn
+
 
 prach_config = PrachConfig()
 
@@ -16,7 +21,7 @@ prach_config.zeroCorrelationZoneConfig = 8
 prach_config.frequencyRange = 'FR1'
 prach_config.set = 'UnrestrictedSet'
 prach_config.spectrumType = 'Unpaired'
-prach_config.frequencyStart = '0'
+prach_config.frequencyStart = 0
 
 carrier_config = CarrierConfig()
 
@@ -55,10 +60,48 @@ y_uv = fft(x_uv)
 print('----------------y_uv-----------------')
 print(y_uv)
 
-time_domain_signal, start_mapping_symbol, end_mapping_symbol = prach_modulation(prach_config, carrier_config, random_access_config)
+time_domain_signal, start_mapping_symbol, end_mapping_symbol = prach_modulation(prach_config, carrier_config,
+                                                                                    random_access_config)
+
+bandwidth = 100e6  # in Hetz
+Fd = 100  # Doppler frequency (in Hz)
+# Ts = 100  # Sampling interval
+Ts = time_domain_signal.size  # Sampling interval
+
+tap_powers_dB = np.array([-6.9, 0, -7.7, -2.5, -2.4, -9.9, -8.0, -6.6, -7.1, -13.0, -14.2, -16.0])
+
+tap_delays = np.array([0, 65, 70, 190, 195, 200, 240, 325, 520, 1045, 1510, 2595])
+
+num_rx_antennas = 1
+
+jakesObj = JakesSampleGenerator(Fd, Ts, L=np.size(tap_powers_dB))
+tdlChanlelProfile = TdlChannelProfile(tap_powers_dB=tap_powers_dB, tap_delays=tap_delays)
+tdlChannel = TdlChannel(jakesObj, channel_profile=tdlChanlelProfile)
+
+tdlChannel.set_num_antennas(num_rx_antennas=num_rx_antennas, num_tx_antennas=1)
+
+print(f"tdlChanlelProfile.rms_delay_spread = {tdlChanlelProfile.rms_delay_spread}\n")
+
+num_sample = 1
+received_test_signal_arr = []
+for sample_index in range(num_sample):
+
+    received_test_signal = tdlChannel.corrupt_data(time_domain_signal)
+    received_test_signal_arr.append(received_test_signal)
+
+# fig, axs = plt.subplots(num_rx_antennas + 1, 1)
+fig, axs = plt.subplots(1, num_rx_antennas + 1)
+axs[0].plot(time_domain_signal)
+for axs_idx in range(1, received_test_signal.shape[0] + 1):
+    axs[axs_idx].plot(received_test_signal[axs_idx - 1, :])
+plt.show()
+
+print('')
 
 
-print(time_domain_signal[start_mapping_symbol[0]:end_mapping_symbol[0] + 1])
+
+
+
 
 
 
