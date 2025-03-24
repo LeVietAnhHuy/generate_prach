@@ -82,11 +82,12 @@ tdlChannel.set_num_antennas(num_rx_antennas=num_rx_antennas, num_tx_antennas=1)
 
 print(f"tdlChanlelProfile.rms_delay_spread = {tdlChanlelProfile.rms_delay_spread}\n")
 
+snr_dB = -44
 num_sample = 1
 received_test_signal_arr = []
 for sample_index in range(num_sample):
-
-    received_test_signal = tdlChannel.corrupt_data(time_domain_signal)
+    received_test_signal = awgn(time_domain_signal, snr_dB=snr_dB)
+    received_test_signal = tdlChannel.corrupt_data(received_test_signal)
     received_test_signal_arr.append(received_test_signal)
 
 # fig, axs = plt.subplots(num_rx_antennas + 1, 1)
