@@ -10,11 +10,10 @@ from pyphysim.channels.fading import TdlChannel, TdlChannelProfile
 from pyphysim.channels.fading_generators import JakesSampleGenerator
 from commpy.channels import awgn
 
-
 prach_config = PrachConfig()
 
 prach_config.preambleIndex = 60
-prach_config.prachConfigurationIndex = 166
+prach_config.prachConfigurationIndex = 144
 prach_config.rootSequenceIndex = 39
 prach_config.subcarrierSpacing = 30
 prach_config.zeroCorrelationZoneConfig = 8

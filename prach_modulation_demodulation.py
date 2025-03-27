@@ -99,33 +99,6 @@ def only_prach_modulation(PrachConfig, CarrierConfig, RandomAccessConfig):
         case '3':
             subframe_factor = 40
 
-    # match RandomAccessConfig.preambleFormat:
-    #     case '0' | '1' | '2' | '3':
-    #         numSubframe = numResourceElement_timeDomain
-    #         numSample_persubframe = default_numSample_perSlot*(CarrierConfig.subcarrierSpacing / 15)*2
-    #         frame_mod_x =  np.mod(frame_indices, RandomAccessConfig.x)
-    #         frame_contain_prach = np.where(frame_mod_x == RandomAccessConfig.y)[0] - 1
-    #
-    #         allframe = range(numSubframe / subframe_factor - 1);
-    #     case default:
-    #         numSample_perSlot = default_numSample_perSlot*(PrachConfig.subcarrierSpacing / 15)
-    #         numSlot_perFrame = 10 * (PrachConfig.subcarrierSpacing / 15)
-    #         totalSlot = CarrierConfig.numFrame * numSlot_perFrame
-    #
-    #         frame_mod_x =  np.mod(frame_indices, RandomAccessConfig.x)
-    #         frame_contain_prach = np.where(frame_mod_x == RandomAccessConfig.y)[0] - 1
-    #
-    #         slot_contain_prach = []
-    #         for frame_index in range(frame_contain_prach.size):
-    #             if type(RandomAccessConfig.subframeNumber) == int:
-    #                 numSubframe = [RandomAccessConfig.subframeNumber]
-    #             for subframe_index in range(len(numSubframe)):
-    #                 for n_RA_slot_index in range(len(n_RA_slot)):
-    #                     subframeNumber_arr = RandomAccessConfig.subframeNumber
-    #                     slot_contain_prach.append(((frame_contain_prach[frame_index]*10 + subframeNumber_arr[subframe_index]) * 2 + n_RA_slot[n_RA_slot_index]))
-    #
-    #         start_symbol_contain_prach = RandomAccessConfig.startingSymbol + np.arange(RandomAccessConfig.numTimeDomainPrachOccasionsWithinAPrachSlot)*RandomAccessConfig.prachDuration
-
     N_CS = get_NCS(PrachConfig, RandomAccessConfig)
 
     u, u_arr_unique = get_u(PrachConfig, RandomAccessConfig, N_CS)
