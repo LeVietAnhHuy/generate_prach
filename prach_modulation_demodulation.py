@@ -315,6 +315,11 @@ def prach_modulation(PrachConfig, CarrierConfig, RandomAccessConfig):
     return time_domain_signal, start_mapping_symbol_arr, end_mapping_symbol_arr
 
 
+def get_preamble_corrlation_windows(PrachConfig, CarrierConfig, RandomAccessConfig, preamble_arr):
+
+    print('')
+
+
 
 
 

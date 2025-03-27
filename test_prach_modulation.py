@@ -108,6 +108,7 @@ numSample_perFrame = numSample_persubframe * 10
 
 # preamble_arr = np.array([])
 preamble_arr = []
+
 for antenna_index in range(num_rx_antennas):
     single_antenna_signal = received_test_signal[antenna_index, :]
     # preamble_frame = np.array([])
@@ -131,8 +132,10 @@ for antenna_index in range(num_rx_antennas):
     preamble_arr.append(preamble_frame)
 
 preamble_arr_np = np.array(preamble_arr)
+print('')
+print('-----------------Preamble Data shape-----------------')
+print(f"preamble_arr_shape = {preamble_arr_np.shape}")
 
-print(preamble_arr_np.shape)
 
 
 
