@@ -225,7 +225,7 @@ def prach_modulation(PrachConfig, CarrierConfig, RandomAccessConfig):
 
     prach_ofdm_information = PachOFDMInfo()
     prach_ofdm_information.getPrachOFDMInfo(PrachConfig, RandomAccessConfig)
-    prach_ofdm_information.display_prach_ofdm_info()
+    # prach_ofdm_information.display_prach_ofdm_info()
 
     match RandomAccessConfig.preambleFormat:
         case '0':
@@ -259,7 +259,7 @@ def prach_modulation(PrachConfig, CarrierConfig, RandomAccessConfig):
             frame_mod_x =  np.mod(frame_indices, RandomAccessConfig.x)
             frame_contain_prach = np.where(frame_mod_x == RandomAccessConfig.y)[0] - 1
 
-            allframe = range(numSubframe / subframe_factor - 1);
+            allframe = range(numSubframe / subframe_factor - 1)
         case default:
             numSample_perSlot = int(default_numSample_perSlot*(PrachConfig.subcarrierSpacing / 15))
             numSlot_perFrame = 10 * (PrachConfig.subcarrierSpacing / 15)
@@ -270,6 +270,7 @@ def prach_modulation(PrachConfig, CarrierConfig, RandomAccessConfig):
 
             slot_contain_prach = []
             for frame_index in range(frame_contain_prach.size):
+                numSubframe = RandomAccessConfig.subframeNumber
                 if type(RandomAccessConfig.subframeNumber) == int:
                     numSubframe = [RandomAccessConfig.subframeNumber]
                 for subframe_index in range(len(numSubframe)):
@@ -324,6 +325,7 @@ def prach_modulation(PrachConfig, CarrierConfig, RandomAccessConfig):
                         if symbol_index in start_symbol_contain_prach:
                             starting_sample_symbol = symbol_index*nfft
                             mapping_slot_index = range(starting_sample_symbol, starting_sample_symbol + prach_sequence.size)
+
                             slot[mapping_slot_index] = prach_sequence
 
                             start_mapping_symbol = slot_index*slot.size + starting_sample_symbol
@@ -334,7 +336,9 @@ def prach_modulation(PrachConfig, CarrierConfig, RandomAccessConfig):
 
                 time_domain_signal = np.concatenate((time_domain_signal, slot), axis=0)
 
-    print('')
+            start_mapping_symbol_arr = np.reshape(start_mapping_symbol_arr, (CarrierConfig.numFrame, -1))
+            end_mapping_symbol_arr = np.reshape(end_mapping_symbol_arr, (CarrierConfig.numFrame, -1))
+
     return time_domain_signal, start_mapping_symbol_arr, end_mapping_symbol_arr
 
 

@@ -27,7 +27,9 @@ class RandomAccessConfig:
                 self.preambleFormat = prachConfigTables['Table6.3.3.2-3']['PreambleFormat'][PrachConfig.prachConfigurationIndex]
                 self.prachConfigurationIndex = PrachConfig.prachConfigurationIndex
                 self.x = prachConfigTables['Table6.3.3.2-3']['x'][PrachConfig.prachConfigurationIndex]
+
                 self.y = prachConfigTables['Table6.3.3.2-3']['y'][PrachConfig.prachConfigurationIndex]
+
                 self.subframeNumber = prachConfigTables['Table6.3.3.2-3']['SubframeNumber'][PrachConfig.prachConfigurationIndex]
                 self.startingSymbol = prachConfigTables['Table6.3.3.2-3']['StartingSymbol'][PrachConfig.prachConfigurationIndex]
                 self.numPrachSlotsWithinASubframe = prachConfigTables['Table6.3.3.2-3']['NumberOfPrachSlotsWithinASubframe'][PrachConfig.prachConfigurationIndex]
