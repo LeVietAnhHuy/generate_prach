@@ -51,10 +51,10 @@ class PachOFDMInfo:
 
         N_RA_CP_l = N_RA_CP + n*16*samplingRate_ratio
 
-        self.sequenceLen = N_u
-        self.cyclicPrefixLen = N_RA_CP_l
-        self.guardPeriodLen = N_RA_GP
-        self.pathProfileLen = pathProfile
+        self.sequenceLen = int(N_u)
+        self.cyclicPrefixLen = int(N_RA_CP_l)
+        self.guardPeriodLen = int(N_RA_GP)
+        self.pathProfileLen = int(pathProfile)
 
     def display_prach_ofdm_info(self):
         print('-------------PRACH OFDM Information-------------')
