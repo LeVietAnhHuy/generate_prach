@@ -194,8 +194,6 @@ def prach_modulation(PrachConfig, CarrierConfig, RandomAccessConfig):
     zeroFreq = numResourceElement_freqDomain / 2
     PrachStartingResourceElementIndex_freqDomain = math.ceil(first + zeroFreq)
 
-    first = PrachStartingResourceElementIndex_freqDomain
-
     prach_ofdm_information = PachOFDMInfo()
     prach_ofdm_information.getPrachOFDMInfo(PrachConfig, RandomAccessConfig)
     # prach_ofdm_information.display_prach_ofdm_info()
@@ -269,7 +267,7 @@ def prach_modulation(PrachConfig, CarrierConfig, RandomAccessConfig):
     ifftin = np.zeros((1, nfft), dtype=complex)
     ifftin = ifftin.squeeze()
 
-    mapping_index_freq = np.arange(RandomAccessConfig.L_RA) + first
+    mapping_index_freq = np.arange(RandomAccessConfig.L_RA) + PrachStartingResourceElementIndex_freqDomain
 
     ifftin[mapping_index_freq] = y_uv_norm
 
@@ -312,7 +310,7 @@ def prach_modulation(PrachConfig, CarrierConfig, RandomAccessConfig):
             start_mapping_symbol_arr = np.reshape(start_mapping_symbol_arr, (CarrierConfig.numFrame, -1))
             end_mapping_symbol_arr = np.reshape(end_mapping_symbol_arr, (CarrierConfig.numFrame, -1))
 
-    return time_domain_signal, start_mapping_symbol_arr, end_mapping_symbol_arr
+    return time_domain_signal, start_mapping_symbol_arr, end_mapping_symbol_arr, PrachStartingResourceElementIndex_freqDomain
 
 
 def get_preamble_corrlation_windows(PrachConfig, CarrierConfig, RandomAccessConfig, preamble_arr):

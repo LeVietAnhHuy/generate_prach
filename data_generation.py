@@ -3,12 +3,14 @@ from get_random_access_configuration import RandomAccessConfig
 from get_ncs_root_cv import get_NCS, get_u, get_C_v
 from prach_modulation_demodulation import prach_modulation
 import numpy as np
-from numpy.fft import fft
+from numpy.fft import fft, fftshift
 from prach_ofdm_info import PachOFDMInfo
 from pyphysim.reference_signals.zadoffchu import calcBaseZC
 from pyphysim.channels.fading import TdlChannel, TdlChannelProfile
 from pyphysim.channels.fading_generators import JakesSampleGenerator
 from commpy.channels import awgn
+import os
+from tqdm import tqdm
 
 prach_config = PrachConfig()
 
@@ -59,12 +61,14 @@ prach_ofdm_information.getPrachOFDMInfo(prach_config, random_access_config)
 print('')
 prach_ofdm_information.display_prach_ofdm_info()
 
-time_domain_signal, start_mapping_symbol_arr, end_mapping_symbol_arr = prach_modulation(prach_config, carrier_config,
-                                                                                    random_access_config)
+(time_domain_signal,
+ start_mapping_symbol_arr,
+ end_mapping_symbol_arr,
+ PrachStartingResourceElementIndex_freqDomain) = prach_modulation(prach_config,
+                                                                  carrier_config,
+                                                                  random_access_config)
 
-print('')
-print('-----------------Channel Configuration-----------------')
-print("Channel: TDLC300-100")
+# x = time_domain_signal[972687]
 
 bandwidth = 100e6  # in Hetz
 Fd = 100  # Doppler frequency (in Hz)
@@ -87,42 +91,43 @@ tdlChannel = TdlChannel(jakesObj, channel_profile=tdlChanlelProfile)
 
 tdlChannel.set_num_antennas(num_rx_antennas=num_rx_antennas, num_tx_antennas=num_tx_antennas)
 
-snr_dB_range = range(-40, 40, 5)
-snr_dB = 0
+start_snr_dB = -40
+end_snr_dB = 40
+step_snr_dB = 2
 
+print('')
+print('-----------------Noise-----------------')
+print("TDLC300-100")
+print(f"AWGN: {start_snr_dB}dB -> {end_snr_dB}dB, step = {step_snr_dB}")
+print('')
+snr_dB_range = range(start_snr_dB, end_snr_dB, step_snr_dB)
 
 default_numSample_perSlot = 30720
 numSample_persubframe = int(default_numSample_perSlot * (carrier_config.subcarrierSpacing / 15) * 2)
 numSample_perFrame = numSample_persubframe * 10
 
-# preamble_arr = np.array([])
-preamble_arr = []
-sum_num = 6
+sum_num = 12
 
 dataset = []
-num_sample_per_snr = 100000
+num_sample_per_snr = 2
 
-for snr_dB in snr_dB_range:
+print('Generating data:')
+for snr_dB in tqdm(snr_dB_range):
     num_sample = 0
     while num_sample <= num_sample_per_snr:
         received_test_signal = awgn(time_domain_signal, snr_dB=snr_dB)
         received_test_signal = tdlChannel.corrupt_data(received_test_signal)
         for antenna_index in range(num_rx_antennas):
             single_antenna_signal = received_test_signal[antenna_index, :]
-            # preamble_frame = np.array([])
 
-            # preamble_frame = []
             for frame_index in range(carrier_config.numFrame):
-                # single_frame_signal = single_antenna_signal[(frame_index*numSample_perFrame):(frame_index*numSample_perFrame + numSample_perFrame)]
 
-                # preamble_slot = np.array([])
                 preamble_slot = []
                 freq_comb_fft_pre_arr = []
                 for slot_index in range(start_mapping_symbol_arr.shape[1]):
                     start_mapping_symbol = start_mapping_symbol_arr[frame_index, slot_index]
                     end_mapping_symbol = end_mapping_symbol_arr[frame_index, slot_index]
 
-                    # single_slot_signal = single_frame_signal[start_mapping_symbol:(end_mapping_symbol + 1)]
                     single_slot_signal = single_antenna_signal[start_mapping_symbol:(end_mapping_symbol + 1)]
                     single_slot_signal_without_cp = single_slot_signal[prach_ofdm_information.cyclicPrefixLen:]
                     single_slot_signal_arr = np.reshape(single_slot_signal_without_cp, (random_access_config.prachDuration, -1))
@@ -133,24 +138,41 @@ for snr_dB in snr_dB_range:
                     signal_fft_multiplier = np.reshape(single_slot_signal_fft_arr, (multiplier, sum_num, num_col))
 
                     for multiple_index in range(multiplier):
-                        avg_freq_signal = np.sum(signal_fft_multiplier[multiplier, :, :], axis=0) / sum_num
+                        avg_freq_signal = np.sum(signal_fft_multiplier[multiple_index, :, :], axis=0) / sum_num
+                        avg_freq_signal_fftshift = fftshift(avg_freq_signal)
 
-                        dataset.append(avg_freq_signal)
+                        freq_sequence = avg_freq_signal_fftshift[PrachStartingResourceElementIndex_freqDomain:(PrachStartingResourceElementIndex_freqDomain + random_access_config.L_RA)]
+                        dataset.append(freq_sequence)
                         num_sample += 1
 
-            #         # preamble_slot = np.concatenate((preamble_slot, single_slot_signal), axis=1)
-            #         preamble_slot.append(single_slot_signal)
-            #     # preamble_frame = np.concatenate((preamble_frame, preamble_slot))
-            #     preamble_frame.append(preamble_slot)
-            # # preamble_arr = np.concatenate((preamble_arr, preamble_frame))
-            # preamble_arr.append(preamble_frame)
-
-dataset_path = 'generated_dataset'
-
-preamble_arr_np = np.array(preamble_arr)
+dataset_np = np.array(dataset)
 print('')
 print('-----------------Preamble Data shape-----------------')
-print(f"preamble_arr_shape = {preamble_arr_np.shape}")
+print(f"preamble_arr_shape = {dataset_np.shape}")
+
+generated_data_dir = 'generated_dataset'
+config_data_dir = 'pi_' + str(prach_config.preambleIndex) + \
+                       '_pci_' + str(prach_config.prachConfigurationIndex) + \
+                       '_rsi_' + str(prach_config.rootSequenceIndex) + \
+                       '_prscs_' + str(prach_config.subcarrierSpacing) + \
+                       '_puscs_' + str(carrier_config.subcarrierSpacing) + \
+                       '_zczc_' + str(prach_config.zeroCorrelationZoneConfig) + \
+                       '_fr_' + prach_config.frequencyRange + \
+                       '_s_' + prach_config.set + \
+                       '_st_' + prach_config.spectrumType + \
+                       '_fs_' + str(prach_config.frequencyStart) + \
+                       '_snrRange_' + str(start_snr_dB) + '_' + str(end_snr_dB) + '_' + str()
+
+config_data_path = os.path.join(generated_data_dir, config_data_dir)
+os.makedirs(config_data_path, exist_ok=True)
+dataset_name = 'rx_' + str(num_rx_antennas) + '_freqComb_' + str(sum_num)  + '_numFrame_' + str(carrier_config.numFrame) + '.npy'
+dataset_dir = os.path.join(config_data_path, dataset_name)
+
+print('')
+print(f"Saving data to {dataset_dir}...")
+np.save(dataset_dir, dataset_np)
+print('Done!')
+
 
 
 
