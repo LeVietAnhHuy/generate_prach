@@ -172,18 +172,3 @@ print('')
 print(f"Saving data to {dataset_dir}...")
 np.save(dataset_dir, dataset_np)
 print('Done!')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
