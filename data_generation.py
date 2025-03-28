@@ -92,8 +92,8 @@ tdlChannel = TdlChannel(jakesObj, channel_profile=tdlChanlelProfile)
 tdlChannel.set_num_antennas(num_rx_antennas=num_rx_antennas, num_tx_antennas=num_tx_antennas)
 
 start_snr_dB = -40
-end_snr_dB = 40
-step_snr_dB = 2
+end_snr_dB = 11
+step_snr_dB = 5
 
 print('')
 print('-----------------Noise-----------------')
@@ -109,11 +109,11 @@ numSample_perFrame = numSample_persubframe * 10
 sum_num = 12
 
 dataset = []
-num_sample_per_snr = 2
+num_sample_per_snr = 1
 
 print('Generating data:')
 for snr_dB in tqdm(snr_dB_range):
-    num_sample = 0
+    num_sample = 1
     while num_sample <= num_sample_per_snr:
         received_test_signal = awgn(time_domain_signal, snr_dB=snr_dB)
         received_test_signal = tdlChannel.corrupt_data(received_test_signal)
