@@ -61,7 +61,6 @@ for epoch in range(1, num_epochs + 1):
     model.train()
     epoch_loss = 0
 
-
     for i, batch in enumerate(train_dataloader):
         x, y_batch = [t.to(device) for t in batch]
         optimizer_Adam.zero_grad()

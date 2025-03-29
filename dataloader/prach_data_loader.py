@@ -21,7 +21,6 @@ def create_training_datasets(data, label, valid_pct=0.2, seed=None):
 
   return train_dataset, val_dataset, val_size
 
-
 def create_training_loaders(data, batch_size=20, jobs=0):
   """Wraps the datasets returned by create_datasets function
   with data loaders."""

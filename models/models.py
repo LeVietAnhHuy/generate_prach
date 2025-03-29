@@ -1,7 +1,6 @@
 import torch
 from torch import nn
 
-
 class NN_v1(nn.Module):
     def __init__(self, input_size, output_size):
         super(NN_v1, self).__init__()
